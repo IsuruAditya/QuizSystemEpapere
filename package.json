@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit",
     "db:local:start": "node scripts/local-db.mjs",
     "db:migrate": "prisma migrate deploy",
+    "dev:credentials": "tsx --conditions=react-server --env-file-if-exists=.env scripts/dev-credentials.ts",
     "db:seed": "tsx --conditions=react-server --env-file-if-exists=.env scripts/seed.ts",
     "admin:bootstrap": "tsx --conditions=react-server --env-file-if-exists=.env scripts/bootstrap-admin.ts",
     "test": "vitest run --project unit",
