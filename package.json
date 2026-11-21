@@ -1,0 +1,66 @@
+{
+  "name": "epapere-exams",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "fixtures": "node scripts/make-csv-fixtures.mjs",
+    "check:encoding": "node scripts/check-encoding.mjs",
+    "openapi": "tsx --conditions=react-server scripts/gen-openapi.ts",
+    "load:prepare": "tsx --conditions=react-server --env-file-if-exists=.env scripts/load-prepare.ts",
+    "typecheck": "tsc --noEmit",
+    "db:local:start": "node scripts/local-db.mjs",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx --conditions=react-server --env-file-if-exists=.env scripts/seed.ts",
+    "admin:bootstrap": "tsx --conditions=react-server --env-file-if-exists=.env scripts/bootstrap-admin.ts",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "playwright test",
+    "test:all": "vitest run"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "@vercel/blob": "2.9.0",
+    "better-auth": "1.7.26",
+    "csv-parse": "7.0.3",
+    "csv-stringify": "6.6.0",
+    "image-size": "2.1.0",
+    "katex": "0.19.1",
+    "next": "16.4.6",
+    "pg": "8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.1",
+    "@tailwindcss/postcss": "4.3.5",
+    "@types/node": "24.0.0",
+    "@types/pg": "8.15.5",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "embedded-postgres": "18.7.0-beta.19",
+    "eslint": "9.39.0",
+    "eslint-config-next": "16.4.6",
+    "prisma": "7.10.1",
+    "tailwindcss": "4.3.5",
+    "tsx": "4.20.0",
+    "typescript": "5.9.3",
+    "vitest": "5.1.1"
+  },
+  "overrides": {
+    "effect": "3.22.5",
+    "@vercel/cli-config": {
+      "zod": "4.6.7"
+    }
+  }
+}

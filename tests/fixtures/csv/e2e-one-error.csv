@@ -1,0 +1,4 @@
+﻿external_id,type,question_text,option_a,option_b,option_c,option_d,correct_option,marks,explanation,topic,difficulty,question_image_ref,option_a_image_ref,option_b_image_ref,option_c_image_ref,option_d_image_ref
+E2E-001,,What is 7 + 6?,11,12,13,14,C,1,7 + 6 = 13.,Addition,,,,,,
+E2E-002,,ශ්‍රී ලංකාවේ අගනුවර කුමක්ද?,කොළඹ,ශ්‍රී ජයවර්ධනපුර කෝට්ටේ,මහනුවර,ගාල්ල,E,1,,,,,,,,
+E2E-003,,Square root of $81$?,$7$,$8$,$9$,$10$,C,2,,,,,,,,

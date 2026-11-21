@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Actions are pinned to major tags. Before enabling required checks, pin each to a reviewed commit SHA
+# (see docs/engineering-standards.md, CI section).
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: epapere_test
+          POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI: "1"
+      APP_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/epapere_test
+      DIRECT_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/epapere_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/epapere_test
+      E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/epapere_e2e
+      # Non-secret CI-only values (no production secrets are available to pull requests).
+      BETTER_AUTH_SECRET: ci-only-secret-ci-only-secret-ci-only-secret
+      CRON_SECRET: ci-only-cron-ci-only-cron-ci-only-cron-0000
+      APP_ORIGIN: http://localhost:3000
+      MEDIA_STORE: local
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Encoding check
+        run: npm run check:encoding
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests (incl. OpenAPI contract checks)
+        run: npm test
+      - name: Migrations from an empty database
+        run: npx prisma migrate deploy
+      - name: PostgreSQL integration tests
+        run: npm run test:integration
+      - name: Production build
+        run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: E2E + accessibility (Playwright, axe)
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-report, path: playwright-report, retention-days: 7 }
+
+  security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - name: Dependency audit (fails on high/critical in production dependencies)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+      - name: CodeQL init
+        uses: github/codeql-action/init@v3
+        with: { languages: javascript-typescript }
+      - name: CodeQL analyze
+        uses: github/codeql-action/analyze@v3

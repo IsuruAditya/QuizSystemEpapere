@@ -1,0 +1,544 @@
+// e-Paperé Exams schema. Partial unique indexes, CHECK constraints and composite
+// membership foreign keys that Prisma cannot express are added in raw SQL in the
+// migration (see prisma/migrations/*_constraints). See design.md §2.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────── Identity (Better Auth models + app fields) ─────────────
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+model User {
+  id                 String    @id
+  name               String
+  email              String    @unique
+  emailVerified      Boolean   @default(false) @map("email_verified")
+  image              String?
+  username           String?   @unique
+  displayUsername    String?   @map("display_username")
+  role               Role      @default(STUDENT)
+  disabled           Boolean   @default(false)
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  sessions           Session[]
+  accounts           Account[]
+  profile            StudentProfile?
+  attempts           Attempt[]      @relation("AttemptUser")
+  auditEvents        AuditEvent[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  token     String   @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at") @db.Timestamptz(3)
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at") @db.Timestamptz(3)
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model StudentProfile {
+  userId          String    @id @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  epId            String    @unique @map("ep_id")
+  fullName        String    @map("full_name")
+  displayName     String    @map("display_name")
+  gradeId         String    @map("grade_id") @db.Uuid
+  grade           Grade     @relation(fields: [gradeId], references: [id], onDelete: Restrict)
+  whatsappE164    String?   @map("whatsapp_e164")
+  school          String?
+  district        String?
+  pseudonymisedAt DateTime? @map("pseudonymised_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([gradeId])
+  @@map("student_profile")
+}
+
+// ───────────── Catalog ─────────────
+
+model Grade {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  level     Int              @unique
+  nameSi    String           @map("name_si")
+  nameEn    String           @map("name_en")
+  active    Boolean          @default(true)
+  students  StudentProfile[]
+  exams     Exam[]
+
+  @@map("grade")
+}
+
+model Subject {
+  id     String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code   String  @unique
+  nameSi String  @map("name_si")
+  nameEn String  @map("name_en")
+  active Boolean @default(true)
+  exams  Exam[]
+
+  @@map("subject")
+}
+
+model Teacher {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  bio          String?
+  photoMediaId String?  @map("photo_media_id") @db.Uuid
+  photo        Media?   @relation("TeacherPhoto", fields: [photoMediaId], references: [id], onDelete: Restrict)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  exams        Exam[]
+
+  @@map("teacher")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("app_setting")
+}
+
+// ───────────── Media ─────────────
+
+enum MediaKind {
+  TEACHER_PHOTO
+  EXAM_COVER
+  QUESTION_IMAGE
+}
+
+model Media {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind         MediaKind
+  contentType  String    @map("content_type")
+  byteSize     Int       @map("byte_size")
+  width        Int
+  height       Int
+  sha256       String
+  storageKey   String    @unique @map("storage_key")
+  altText      String?   @map("alt_text")
+  originalName String?   @map("original_name")
+  uploadedById String    @map("uploaded_by_id")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  teachers     Teacher[] @relation("TeacherPhoto")
+  examCovers   Exam[]    @relation("ExamCover")
+
+  @@map("media")
+}
+
+// ───────────── Question bank ─────────────
+
+model Question {
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdById String            @map("created_by_id")
+  externalId  String?           @map("external_id")
+  archived    Boolean           @default(false)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  versions    QuestionVersion[]
+
+  @@map("question")
+}
+
+model QuestionVersion {
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId   String           @map("question_id") @db.Uuid
+  question     Question         @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  versionNo    Int              @map("version_no")
+  stem         String
+  stemMediaId  String?          @map("stem_media_id") @db.Uuid
+  explanation  String?
+  marks        Int
+  topic        String?
+  difficulty   String?
+  createdById  String           @map("created_by_id")
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  options      QuestionOption[]
+  examSlots    ExamQuestion[]
+  draftItems   ExamDraftItem[]
+
+  @@unique([questionId, versionNo])
+  @@map("question_version")
+}
+
+model QuestionOption {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionVersionId String          @map("question_version_id") @db.Uuid
+  questionVersion   QuestionVersion @relation(fields: [questionVersionId], references: [id], onDelete: Restrict)
+  position          Int
+  text              String?
+  mediaId           String?         @map("media_id") @db.Uuid
+  isCorrect         Boolean         @map("is_correct")
+
+  @@unique([questionVersionId, position])
+  @@unique([id, questionVersionId])
+  @@map("question_option")
+}
+
+// ───────────── Exams ─────────────
+
+enum ExamMode {
+  RANKED
+  PRACTICE
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Visibility {
+  IMMEDIATE
+  AFTER_RELEASE
+  NEVER
+}
+
+enum LeaderboardVisibility {
+  STUDENTS
+  HIDDEN
+}
+
+model Exam {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                  String                @unique
+  title                 String
+  description           String                @default("")
+  instructions          String                @default("")
+  gradeId               String                @map("grade_id") @db.Uuid
+  grade                 Grade                 @relation(fields: [gradeId], references: [id], onDelete: Restrict)
+  subjectId             String                @map("subject_id") @db.Uuid
+  subject               Subject               @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  teacherId             String?               @map("teacher_id") @db.Uuid
+  teacher               Teacher?              @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  coverMediaId          String?               @map("cover_media_id") @db.Uuid
+  cover                 Media?                @relation("ExamCover", fields: [coverMediaId], references: [id], onDelete: Restrict)
+  mode                  ExamMode
+  status                ExamStatus            @default(DRAFT)
+  durationSeconds       Int?                  @map("duration_seconds")
+  opensAt               DateTime?             @map("opens_at") @db.Timestamptz(3)
+  closesAt              DateTime?             @map("closes_at") @db.Timestamptz(3)
+  allowLateStart        Boolean               @default(true) @map("allow_late_start")
+  maxAttempts           Int?                  @map("max_attempts")
+  scoreVisibility       Visibility            @default(IMMEDIATE) @map("score_visibility")
+  correctnessVisibility Visibility            @default(AFTER_RELEASE) @map("correctness_visibility")
+  answerVisibility      Visibility            @default(AFTER_RELEASE) @map("answer_visibility")
+  explanationVisibility Visibility            @default(AFTER_RELEASE) @map("explanation_visibility")
+  reviewReleaseAt       DateTime?             @map("review_release_at") @db.Timestamptz(3)
+  leaderboardVisibility LeaderboardVisibility @default(STUDENTS) @map("leaderboard_visibility")
+  rankingRevision       Int                   @default(0) @map("ranking_revision")
+  rankingNote           String?               @map("ranking_note")
+  currentVersionId      String?               @unique @map("current_version_id") @db.Uuid
+  currentVersion        ExamVersion?          @relation("CurrentVersion", fields: [currentVersionId], references: [id], onDelete: Restrict)
+  createdById           String                @map("created_by_id")
+  publishedAt           DateTime?             @map("published_at") @db.Timestamptz(3)
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  versions              ExamVersion[]         @relation("ExamVersions")
+  draftItems            ExamDraftItem[]
+  attempts              Attempt[]
+  importJobs            ImportJob[]
+
+  @@index([status, gradeId, subjectId])
+  @@map("exam")
+}
+
+model ExamDraftItem {
+  examId            String          @map("exam_id") @db.Uuid
+  exam              Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  position          Int
+  questionVersionId String          @map("question_version_id") @db.Uuid
+  questionVersion   QuestionVersion @relation(fields: [questionVersionId], references: [id], onDelete: Restrict)
+
+  @@id([examId, position])
+  @@unique([examId, questionVersionId])
+  @@map("exam_draft_item")
+}
+
+model ExamVersion {
+  id                        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  examId                    String            @map("exam_id") @db.Uuid
+  exam                      Exam              @relation("ExamVersions", fields: [examId], references: [id], onDelete: Restrict)
+  versionNo                 Int               @map("version_no")
+  totalMarks                Int               @map("total_marks")
+  questionCount             Int               @map("question_count")
+  latestGradingRevisionId   String?           @unique @map("latest_grading_revision_id") @db.Uuid
+  latestGradingRevision     GradingRevision?  @relation("LatestRevision", fields: [latestGradingRevisionId], references: [id], onDelete: Restrict)
+  publishedById             String            @map("published_by_id")
+  publishedAt               DateTime          @default(now()) @map("published_at") @db.Timestamptz(3)
+  questions                 ExamQuestion[]
+  gradingRevisions          GradingRevision[] @relation("VersionRevisions")
+  attempts                  Attempt[]
+  currentFor                Exam?             @relation("CurrentVersion")
+
+  @@unique([examId, versionNo])
+  @@unique([id, examId])
+  @@map("exam_version")
+}
+
+model ExamQuestion {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  examVersionId     String          @map("exam_version_id") @db.Uuid
+  examVersion       ExamVersion     @relation(fields: [examVersionId], references: [id], onDelete: Restrict)
+  position          Int
+  questionVersionId String          @map("question_version_id") @db.Uuid
+  questionVersion   QuestionVersion @relation(fields: [questionVersionId], references: [id], onDelete: Restrict)
+  marks             Int
+  keys              GradingKey[]
+
+  @@unique([examVersionId, position])
+  @@unique([examVersionId, questionVersionId])
+  @@unique([id, examVersionId, questionVersionId])
+  @@map("exam_question")
+}
+
+model GradingRevision {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  examVersionId String         @map("exam_version_id") @db.Uuid
+  examVersion   ExamVersion    @relation("VersionRevisions", fields: [examVersionId], references: [id], onDelete: Restrict)
+  revisionNo    Int            @map("revision_no")
+  reason        String
+  createdById   String         @map("created_by_id")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  keys          GradingKey[]
+  latestFor     ExamVersion?   @relation("LatestRevision")
+  grades        AttemptGrade[]
+  attempts      Attempt[]
+
+  @@unique([examVersionId, revisionNo])
+  @@map("grading_revision")
+}
+
+model GradingKey {
+  gradingRevisionId String          @map("grading_revision_id") @db.Uuid
+  gradingRevision   GradingRevision @relation(fields: [gradingRevisionId], references: [id], onDelete: Restrict)
+  examQuestionId    String          @map("exam_question_id") @db.Uuid
+  examQuestion      ExamQuestion    @relation(fields: [examQuestionId], references: [id], onDelete: Restrict)
+  examVersionId     String          @map("exam_version_id") @db.Uuid
+  questionVersionId String          @map("question_version_id") @db.Uuid
+  correctOptionId   String          @map("correct_option_id") @db.Uuid
+  marks             Int
+
+  @@id([gradingRevisionId, examQuestionId])
+  @@map("grading_key")
+}
+
+// ───────────── Attempts ─────────────
+
+enum AttemptKind {
+  OFFICIAL
+  PRACTICE
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
+}
+
+enum FinalizeReason {
+  MANUAL
+  EXPIRED
+}
+
+model Attempt {
+  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  examId              String           @map("exam_id") @db.Uuid
+  exam                Exam             @relation(fields: [examId], references: [id], onDelete: Restrict)
+  examVersionId       String           @map("exam_version_id") @db.Uuid
+  examVersion         ExamVersion      @relation(fields: [examVersionId], references: [id], onDelete: Restrict)
+  userId              String           @map("user_id")
+  user                User             @relation("AttemptUser", fields: [userId], references: [id], onDelete: Restrict)
+  kind                AttemptKind
+  attemptNo           Int              @map("attempt_no")
+  status              AttemptStatus    @default(IN_PROGRESS)
+  startedAt           DateTime         @map("started_at") @db.Timestamptz(3)
+  deadlineAt          DateTime?        @map("deadline_at") @db.Timestamptz(3)
+  submittedAt         DateTime?        @map("submitted_at") @db.Timestamptz(3)
+  finalizeReason      FinalizeReason?  @map("finalize_reason")
+  elapsedMs           Int?             @map("elapsed_ms")
+  revision            Int              @default(0)
+  controllerToken     String           @map("controller_token") @db.Uuid
+  lastMutationId      String?          @map("last_mutation_id") @db.Uuid
+  lastSavedAt         DateTime?        @map("last_saved_at") @db.Timestamptz(3)
+  score               Int?
+  maxScore            Int?             @map("max_score")
+  percentBp           Int?             @map("percent_bp")
+  gradingRevisionId   String?          @map("grading_revision_id") @db.Uuid
+  gradingRevision     GradingRevision? @relation(fields: [gradingRevisionId], references: [id], onDelete: Restrict)
+  gradedAt            DateTime?        @map("graded_at") @db.Timestamptz(3)
+  voidedAt            DateTime?        @map("voided_at") @db.Timestamptz(3)
+  voidReason          String?          @map("void_reason")
+  voidedById          String?          @map("voided_by_id")
+  replacementGranted  Boolean          @default(false) @map("replacement_granted")
+  replacesAttemptId   String?          @unique @map("replaces_attempt_id") @db.Uuid
+  replaces            Attempt?         @relation("Replacement", fields: [replacesAttemptId], references: [id], onDelete: Restrict)
+  replacedBy          Attempt?         @relation("Replacement")
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  answers             AttemptAnswer[]
+  grades              AttemptGrade[]
+
+  @@unique([id, examVersionId])
+  @@index([userId, examId])
+  @@index([examId, status])
+  @@map("attempt")
+}
+
+model AttemptAnswer {
+  attemptId         String   @map("attempt_id") @db.Uuid
+  attempt           Attempt  @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  examQuestionId    String   @map("exam_question_id") @db.Uuid
+  examVersionId     String   @map("exam_version_id") @db.Uuid
+  questionVersionId String   @map("question_version_id") @db.Uuid
+  optionId          String?  @map("option_id") @db.Uuid
+  revision          Int
+  updatedAt         DateTime @map("updated_at") @db.Timestamptz(3)
+
+  @@id([attemptId, examQuestionId])
+  @@map("attempt_answer")
+}
+
+model AttemptGrade {
+  attemptId         String          @map("attempt_id") @db.Uuid
+  attempt           Attempt         @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  gradingRevisionId String          @map("grading_revision_id") @db.Uuid
+  gradingRevision   GradingRevision @relation(fields: [gradingRevisionId], references: [id], onDelete: Restrict)
+  score             Int
+  maxScore          Int             @map("max_score")
+  gradedAt          DateTime        @default(now()) @map("graded_at") @db.Timestamptz(3)
+
+  @@id([attemptId, gradingRevisionId])
+  @@map("attempt_grade")
+}
+
+// ───────────── Imports, jobs, audit, rate limits ─────────────
+
+enum ImportStatus {
+  STAGED
+  COMMITTED
+  DISCARDED
+}
+
+model ImportJob {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind         String       @default("QUESTIONS_CSV")
+  actorId      String       @map("actor_id")
+  fileName     String       @map("file_name")
+  fileSha256   String       @map("file_sha256")
+  byteSize     Int          @map("byte_size")
+  targetExamId String?      @map("target_exam_id") @db.Uuid
+  targetExam   Exam?        @relation(fields: [targetExamId], references: [id], onDelete: Restrict)
+  status       ImportStatus @default(STAGED)
+  rows         Json
+  report       Json
+  errorCount   Int          @map("error_count")
+  warningCount Int          @map("warning_count")
+  result       Json?
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  committedAt  DateTime?    @map("committed_at") @db.Timestamptz(3)
+
+  @@index([actorId, createdAt])
+  @@map("import_job")
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+model Job {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        String
+  payload     Json
+  status      JobStatus @default(QUEUED)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5) @map("max_attempts")
+  runAfter    DateTime  @default(now()) @map("run_after") @db.Timestamptz(3)
+  leaseUntil  DateTime? @map("lease_until") @db.Timestamptz(3)
+  dedupeKey   String?   @unique @map("dedupe_key")
+  progress    Json?
+  lastError   String?   @map("last_error")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, runAfter])
+  @@map("job")
+}
+
+model AuditEvent {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorId    String?  @map("actor_id")
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  detail     Json     @default("{}")
+  requestId  String?  @map("request_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([targetType, targetId, createdAt])
+  @@index([createdAt])
+  @@map("audit_event")
+}
+
+model RateLimitBucket {
+  key         String   @id
+  windowStart DateTime @map("window_start") @db.Timestamptz(3)
+  count       Int
+
+  @@map("rate_limit_bucket")
+}

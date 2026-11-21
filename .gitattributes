@@ -1,0 +1,14 @@
+# Normalise text files to LF in the repository.
+* text=auto eol=lf
+
+# CSV templates and fixtures are byte-exact on purpose (UTF-8 BOM, CRLF vs LF cases are tested).
+# Never convert their line endings.
+*.csv -text
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.zip binary

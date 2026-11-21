@@ -1,0 +1,11 @@
+external_id,type,question_text,option_a,option_b,option_c,option_d,correct_option,marks,explanation,topic,difficulty,question_image_ref,option_a_image_ref,option_b_image_ref,option_c_image_ref,option_d_image_ref
+,SINGLE_CHOICE,Missing id,a,b,c,d,A,1,,,,,,,,
+BAD-KEY,SINGLE_CHOICE,Bad key,a,b,c,d,E,1,,,,,,,,
+ZERO-MARKS,SINGLE_CHOICE,Zero marks,a,b,c,d,A,0,,,,,,,,
+FRACTION-MARKS,SINGLE_CHOICE,Fraction marks,a,b,c,d,A,1.5,,,,,,,,
+EMPTY-OPTION,SINGLE_CHOICE,Empty option,a,b,,d,A,1,,,,,,,,
+BAD-TYPE,MULTI_CHOICE,Bad type,a,b,c,d,A,1,,,,,,,,
+URL-IMAGE,SINGLE_CHOICE,Url image,a,b,c,d,A,1,,,,https://example.com/x.png,,,,
+DUP-1,SINGLE_CHOICE,Dup one,a,b,c,d,A,1,,,,,,,,
+DUP-1,SINGLE_CHOICE,Dup two,a,b,c,d,A,1,,,,,,,,
+SAME-OPTIONS,SINGLE_CHOICE,Same options,x,x,c,d,C,1,,,,,,,,

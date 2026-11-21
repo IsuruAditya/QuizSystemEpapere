@@ -1,0 +1,59 @@
+# Test report
+
+Last full run: **21 Nov 2026**, Windows 11 laptop, Node 24.14.0, embedded PostgreSQL 18.7 (UTF-8, server TimeZone Asia/Colombo, database default UTC by migration), Chromium 1255 (Playwright 1.65.1). Every result below was actually executed. Anything not executed is marked **NOT RUN**.
+
+## Results
+
+| Command | Result |
+|---|---|
+| `npm run check:encoding` | PASS (all files valid UTF-8, no mojibake) |
+| `npm run lint` | PASS (0 problems, `--max-warnings=0`) |
+| `npm run typecheck` | PASS |
+| `npm test` (unit) | **PASS: 44/44** in 5 files (grading, CSV, timing/ranking/release, sync queue, OpenAPI contract) |
+| `npm run test:integration` (real PostgreSQL `epapere_test`) | **PASS: 59/59** in 6 files (attempts, ranking/import/regrade/export, security over HTTP handlers, query plans, session settings, timezone) |
+| `npx prisma migrate deploy` on an empty database | PASS (integration global setup resets and migrates every run; dev and E2E databases also migrated) |
+| `npm audit --omit=dev --audit-level=high` | PASS (0 vulnerabilities after overrides; see security.md) |
+| `npm run build` | PASS |
+| `npm run test:e2e` (Playwright, desktop Chromium + Pixel 5) | **PASS: 7/7** (full admin→student flow; axe A/AA light and dark on four student screens, two viewports; keyboard; offline recovery) |
+| `npm run admin:bootstrap` | PASS (creates the first admin; a second run is refused) |
+| `npm run db:seed` (twice) | PASS (idempotent) |
+| k6 smoke (5 scenarios, 20 users, local) + `load-verify.ts` | PASS (see load-test-report.md). **Not a capacity result** |
+
+## Defects found by tests and fixed (not hidden)
+
+| Defect | Found by | Fix |
+|---|---|---|
+| A non-UTC DB session shifted every `timestamptz` read via the pg adapter by +5:30, which would corrupt deadlines | integration tests (all starts reported CLOSED) | migration sets database timezone UTC; regression test `tz-probe.test.ts` |
+| Admin password reset revoked the session but the client then could not continue with the rotated cookie | security test | forward Better Auth's Set-Cookie on password change |
+| CSV option errors were not mapped to their column | unit test | numeric path segments mapped |
+| Answer timestamps used a second clock read instead of the admitted receipt time | race test | `updated_at` = the time read under the lock |
+| Exam forms submitted natively before hydration (lost input; password could reach the URL) | E2E on a slow first load | `ClientForm`: POST method, disabled until hydrated |
+| The answer radio was a 1 px `sr-only` element (not clickable as a target) | E2E | native radio stretched over the option card |
+| Client aborts were logged as database failures | E2E server log | classified separately |
+| `effect` and nested `zod` high advisories | npm audit | `overrides` to patched versions |
+| k6 harness: cookie reset per iteration; reader VUs beyond the account count | k6 smoke | `noCookiesReset`; modulo accounts |
+
+## NOT RUN (and why)
+
+| Item | Reason | Needed to run |
+|---|---|---|
+| GitHub Actions CI, gitleaks, CodeQL | no GitHub repository/runner in this environment | push the repo; check the first run |
+| Capacity tests at 5,000 students | no staging infrastructure or external load generator | see load-test-report.md |
+| k6 `exam_session` (60 min) and `expiry` smoke | time; planned on staging | staging run |
+| Firefox/Safari/real Android devices | only Chromium installed | Playwright WebKit/Firefox + device lab |
+| Manual screen-reader passes (NVDA, TalkBack, VoiceOver) | manual | accessibility-report.md checklist |
+| axe on admin, result and leaderboard pages | not yet scripted | extend `mobile-a11y.spec.ts` |
+| Backup restore drill | needs Neon | operations.md |
+| Vercel/Neon/Blob deployment checks (TLS, pooler behaviour, cron, Blob private reads) | no credentials | deployment.md |
+| Job lease crash/takeover under real process kill | lease logic implemented; only retry/recovery paths tested | add a test that expires a lease mid-run |
+
+## How to reproduce
+
+```bash
+npm run db:local:start   # keep running
+npm run check:encoding && npm run lint && npm run typecheck
+npm test
+npm run test:integration
+npm run build && npm run test:e2e
+npm audit --omit=dev --audit-level=high
+```

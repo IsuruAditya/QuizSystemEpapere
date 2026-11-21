@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Design tokens. Brand: blue-violet #3E3A98 on white. Contrast checked for WCAG AA in both themes
+   (see docs/accessibility-report.md). */
+:root {
+  --bg: #ffffff;
+  --surface: #f6f6fb;
+  --surface-2: #ececf6;
+  --fg: #16152e;
+  --muted: #4d4b6b;
+  --border: #c9c7df;
+  --brand: #3e3a98;
+  --brand-fg: #ffffff;
+  --brand-soft: #e8e7f7;
+  --focus: #3e3a98;
+  --ok: #146c2e;
+  --ok-soft: #e3f4e8;
+  --warn: #8a5300;
+  --warn-soft: #fff1d6;
+  --danger: #a4161a;
+  --danger-soft: #fde7e7;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg: #121120;
+  --surface: #1b1a2e;
+  --surface-2: #26243f;
+  --fg: #eeedf8;
+  --muted: #b9b7d4;
+  --border: #45436a;
+  --brand: #a9a5f2;
+  --brand-fg: #121120;
+  --brand-soft: #2c2a52;
+  --focus: #c8c5ff;
+  --ok: #7fdc98;
+  --ok-soft: #173322;
+  --warn: #ffcb6b;
+  --warn-soft: #3a2b0e;
+  --danger: #ff9b9b;
+  --danger-soft: #3e1719;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-soft: var(--brand-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: "Noto Sans Sinhala", "Iskoola Pota", "Nirmala UI", "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  font-family: var(--font-sans);
+  /* Sinhala vowel signs extend above/below the line: generous line height prevents clipping. */
+  line-height: 1.65;
+  min-height: 100dvh;
+}
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+.katex { font-size: 1.05em; }
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.25rem 0; }
+img { max-width: 100%; height: auto; }
