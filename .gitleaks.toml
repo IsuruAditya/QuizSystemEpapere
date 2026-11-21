@@ -1,0 +1,14 @@
+# gitleaks configuration: default rules, plus a narrow allowlist of NON-SECRET test placeholders.
+# These literals are fixed values used only by the throwaway E2E database (playwright.config.ts).
+# They protect nothing. Do not add real values, broad regexes or path wildcards here.
+title = "e-Paperé Exams"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented non-secret E2E placeholders (playwright.config.ts)"
+regexes = [
+  '''^e2e-secret-e2e-secret-e2e-secret-0123456789$''',
+  '''^e2e-cron-secret-e2e-cron-secret-0123456789$''',
+]

@@ -47,12 +47,19 @@ describe("start / resume (§19.7, §19.8)", () => {
     exam = await makeExam(admin, cat, { questions: [...SPEC] });
   });
 
-  it("20 concurrent start requests create exactly one official attempt", async () => {
-    const st = await makeStudent(cat.g9);
-    const results = await Promise.all(Array.from({ length: 20 }, () => startAttempt(st, exam.slug, { takeover: false })));
-    expect(new Set(results.map((r) => r.attemptId)).size).toBe(1);
-    expect(results.filter((r) => r.created).length).toBe(1);
-    expect(await db.attempt.count({ where: { examId: exam.id, userId: st.userId } })).toBe(1);
+  it("20 concurrent start requests create exactly one official attempt and none fails (10 rounds)", async () => {
+    // Regression: a racing request used to see the winner's new attempt as "already used" and fail with
+    // NO_ATTEMPTS_REMAINING. Every request must resolve to the same attempt. Repeated to make the race likely.
+    for (let round = 0; round < 10; round++) {
+      const st = await makeStudent(cat.g9);
+      const settled = await Promise.allSettled(Array.from({ length: 20 }, () => startAttempt(st, exam.slug, { takeover: false })));
+      const failures = settled.filter((s): s is PromiseRejectedResult => s.status === "rejected").map((s) => (s.reason as AppError).code ?? String(s.reason));
+      expect(failures).toEqual([]);
+      const results = settled.map((s) => (s as PromiseFulfilledResult<Awaited<ReturnType<typeof startAttempt>>>).value);
+      expect(new Set(results.map((r) => r.attemptId)).size).toBe(1);
+      expect(results.filter((r) => r.created).length).toBe(1);
+      expect(await db.attempt.count({ where: { examId: exam.id, userId: st.userId } })).toBe(1);
+    }
   });
 
   it("resume preserves deadline, saved selections and question order; does not hand out the controller token", async () => {

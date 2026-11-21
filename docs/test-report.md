@@ -13,6 +13,7 @@ Last full run: **21 Nov 2026**, Windows 11 laptop, Node 24.14.0, embedded Postgr
 | `npm run test:integration` (real PostgreSQL `epapere_test`) | **PASS: 59/59** in 6 files (attempts, ranking/import/regrade/export, security over HTTP handlers, query plans, session settings, timezone) |
 | `npx prisma migrate deploy` on an empty database | PASS (integration global setup resets and migrates every run; dev and E2E databases also migrated) |
 | `npm audit --omit=dev --audit-level=high` | PASS (0 vulnerabilities after overrides; see security.md) |
+| `gitleaks git --config .gitleaks.toml .` (8.24.3, full history) | PASS (2 commits, no leaks; the only default-rule finding is the allowlisted E2E placeholder) |
 | `npm run build` | PASS |
 | `npm run test:e2e` (Playwright, desktop Chromium + Pixel 5) | **PASS: 7/7** (full admin→student flow; axe A/AA light and dark on four student screens, two viewports; keyboard; offline recovery) |
 | `npm run admin:bootstrap` | PASS (creates the first admin; a second run is refused) |
@@ -32,12 +33,14 @@ Last full run: **21 Nov 2026**, Windows 11 laptop, Node 24.14.0, embedded Postgr
 | Client aborts were logged as database failures | E2E server log | classified separately |
 | `effect` and nested `zod` high advisories | npm audit | `overrides` to patched versions |
 | k6 harness: cookie reset per iteration; reader VUs beyond the account count | k6 smoke | `noCookiesReset`; modulo accounts |
+| **Race in concurrent ranked starts**: a request losing the insert race counted the winner's new attempt as "already used" and returned NO_ATTEMPTS_REMAINING instead of resuming (double-click / two tabs) | first GitHub Actions run (`attempts.test.ts`); not reproducible on the dev laptop in 30 local rounds | count only voided official attempts; the test now runs 10 rounds × 20 concurrent starts and asserts no request fails |
+| gitleaks-action cannot scan a repository's first push (`<root>^` does not exist) | first GitHub Actions run | pinned, checksum-verified gitleaks CLI scanning full history; `.gitleaks.toml` allowlists only the two documented E2E placeholder literals (verified: realistic secrets are still detected) |
 
 ## NOT RUN (and why)
 
 | Item | Reason | Needed to run |
 |---|---|---|
-| GitHub Actions CI, gitleaks, CodeQL | no GitHub repository/runner in this environment | push the repo; check the first run |
+| GitHub Actions CI, CodeQL (full green run) | first run found two defects (above); re-run pending after the fix | check the Actions tab after the push |
 | Capacity tests at 5,000 students | no staging infrastructure or external load generator | see load-test-report.md |
 | k6 `exam_session` (60 min) and `expiry` smoke | time; planned on staging | staging run |
 | Firefox/Safari/real Android devices | only Chromium installed | Playwright WebKit/Firefox + device lab |

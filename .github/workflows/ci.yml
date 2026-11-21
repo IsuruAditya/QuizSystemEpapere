@@ -84,9 +84,21 @@ jobs:
       - run: npm ci
       - name: Dependency audit (fails on high/critical in production dependencies)
         run: npm audit --omit=dev --audit-level=high
-      - name: Secret scan
-        uses: gitleaks/gitleaks-action@v2
-        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+      # gitleaks CLI instead of gitleaks-action: the action scans `<first pushed commit>^..HEAD`, which
+      # fails on a repository's first push (root commit has no parent). We scan the full history with
+      # a pinned, checksum-verified release and the repo's .gitleaks.toml.
+      - name: Secret scan (gitleaks, full history)
+        env:
+          GITLEAKS_VERSION: "8.24.3"
+        run: |
+          set -euo pipefail
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$tarball" "$base/$tarball"
+          curl -sSfL -o checksums.txt "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          sha256sum --check --ignore-missing checksums.txt
+          tar -xzf "$tarball" gitleaks
+          ./gitleaks git --redact --verbose --config .gitleaks.toml --exit-code 1 .
       - name: CodeQL init
         uses: github/codeql-action/init@v3
         with: { languages: javascript-typescript }

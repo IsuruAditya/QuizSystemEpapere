@@ -74,8 +74,10 @@ export async function startAttempt(actor: Actor, slug: string, opts: { takeover:
       orderBy: { createdAt: "desc" },
       select: { id: true },
     });
-    const anyVoided = await db.attempt.count({ where: { examId: exam.id, userId: actor.userId, kind: "OFFICIAL" } });
-    if (anyVoided > 0 && !grant) throw new AppError("NO_ATTEMPTS_REMAINING", "You have already used your attempt for this exam.");
+    // Count only VOIDED official attempts. A non-void one created by a concurrent start must not be
+    // counted here: that request resolves through the conflict-safe insert below and resumes the winner.
+    const voidedCount = await db.attempt.count({ where: { examId: exam.id, userId: actor.userId, kind: "OFFICIAL", voidedAt: { not: null } } });
+    if (voidedCount > 0 && !grant) throw new AppError("NO_ATTEMPTS_REMAINING", "You have already used your attempt for this exam.");
     replacesAttemptId = grant?.id ?? null;
   } else if (exam.maxAttempts !== null) {
     const used = await db.attempt.count({ where: { examId: exam.id, userId: actor.userId, kind: "PRACTICE", voidedAt: null } });

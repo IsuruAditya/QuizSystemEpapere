@@ -34,6 +34,9 @@ load/results/
 *.log
 .lint.json
 .audit*
+# Local secret-scan reports (list local files such as .env; never commit)
+.gitleaks-*.json
+results.sarif
 npm-debug.log*
 
 # ── OS / editor ──
