@@ -386,6 +386,21 @@ describe("deadline and expiry (§19.9, §19.13, §19.16, §19.17, §19.28)", () 
     expect(second.attemptId).not.toBe(a.id);
   });
 
+  it("practice with maxAttempts=1: 20 concurrent starts resume one attempt and none fails (10 rounds)", async () => {
+    // Regression (same race class as ranked): a losing request must not count the winner's new
+    // in-progress attempt towards the limit and fail with NO_ATTEMPTS_REMAINING.
+    const ex = await makeExam(admin, cat, { mode: "PRACTICE", questions: [...SPEC], maxAttempts: 1 });
+    for (let round = 0; round < 10; round++) {
+      const st = await makeStudent(cat.g9);
+      const settled = await Promise.allSettled(Array.from({ length: 20 }, () => startAttempt(st, ex.slug, { takeover: false })));
+      const failures = settled.filter((s): s is PromiseRejectedResult => s.status === "rejected").map((s) => (s.reason as AppError).code ?? String(s.reason));
+      expect(failures).toEqual([]);
+      const ids = new Set(settled.map((s) => (s as PromiseFulfilledResult<Awaited<ReturnType<typeof startAttempt>>>).value.attemptId));
+      expect(ids.size).toBe(1);
+      expect(await db.attempt.count({ where: { examId: ex.id, userId: st.userId } })).toBe(1);
+    }
+  });
+
   it("practice max attempts is enforced", async () => {
     const ex = await makeExam(admin, cat, { mode: "PRACTICE", questions: [...SPEC], maxAttempts: 1 });
     const st = await makeStudent(cat.g9);

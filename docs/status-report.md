@@ -3,7 +3,7 @@
 | Gate | State |
 |---|---|
 | Code complete (MVP scope) | **Yes** |
-| Verified locally (lint, types, 44 unit, 59 PostgreSQL integration, 7 E2E, audit, build) | **Yes** (see test-report.md) |
+| Verified locally (lint, types, 44 unit, 60 PostgreSQL integration, 7 E2E, audit, build) | **Yes** (see test-report.md) |
 | Staging verified (Vercel + Neon + Blob) | **No**: needs credentials and owner authorisation |
 | Capacity verified (5,000 concurrent) | **No**: only local smoke runs (load-test-report.md) |
 | Production released | **No** |

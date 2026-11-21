@@ -80,7 +80,9 @@ export async function startAttempt(actor: Actor, slug: string, opts: { takeover:
     if (voidedCount > 0 && !grant) throw new AppError("NO_ATTEMPTS_REMAINING", "You have already used your attempt for this exam.");
     replacesAttemptId = grant?.id ?? null;
   } else if (exam.maxAttempts !== null) {
-    const used = await db.attempt.count({ where: { examId: exam.id, userId: actor.userId, kind: "PRACTICE", voidedAt: null } });
+    // Count only FINALISED practice attempts. Step 1 already resumed any in-progress attempt, so one seen
+    // here was created by a concurrent start; this request then resumes it via the conflict-safe insert.
+    const used = await db.attempt.count({ where: { examId: exam.id, userId: actor.userId, kind: "PRACTICE", voidedAt: null, status: { not: "IN_PROGRESS" } } });
     if (used >= exam.maxAttempts) throw new AppError("NO_ATTEMPTS_REMAINING", "You have used all attempts for this practice exam.");
   }
 

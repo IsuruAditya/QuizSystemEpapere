@@ -39,7 +39,7 @@ Dependency-ordered. Status: [x] done and verified by an executed test or check, 
 
 ## Stage 7 — Verification
 - [x] 7.1 Unit tests (44)
-- [x] 7.2 PostgreSQL integration tests (59), incl. HTTP-level security tests
+- [x] 7.2 PostgreSQL integration tests (60), incl. HTTP-level security tests
 - [~] 7.3 Playwright E2E + axe (7 pass on Chromium); manual AT, Safari/Firefox, admin-page axe pending
 - [x] 7.4 lint, typecheck, build, audit; test report
 
