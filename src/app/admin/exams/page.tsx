@@ -46,23 +46,12 @@ export default async function AdminExams({ searchParams }: { searchParams: Promi
       {list.items.length === 0 ? (
         <EmptyState>No exams match. Create one with “New exam”.</EmptyState>
       ) : (
-        <Table caption="Exams">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Grade · subject</th>
-              <th>Mode</th>
-              <th>Status</th>
-              <th>Window (Colombo)</th>
-              <th>Questions</th>
-              <th>Attempts</th>
-            </tr>
-          </thead>
+        <Table caption="Exams" columns={["Title", "Grade · subject", "Mode", "Status", "Window (Colombo)", "Questions", "Attempts"]}>
           <tbody>
             {list.items.map((e) => (
               <tr key={e.id}>
                 <td>
-                  <Link className="font-semibold underline" href={`/admin/exams/${e.id}`}>
+                  <Link className="font-semibold text-brand underline-offset-4 hover:underline" href={`/admin/exams/${e.id}`}>
                     {e.title}
                   </Link>
                 </td>

@@ -176,14 +176,7 @@ export function BulkRegistration() {
         </Alert>
       )}
       {res && res.results.some((r) => r.errors.length) && (
-        <Table caption="Row errors">
-          <thead>
-            <tr>
-              <th>Row</th>
-              <th>EP ID</th>
-              <th>Problem</th>
-            </tr>
-          </thead>
+        <Table caption="Row errors" columns={["Row", "EP ID", "Problem"]}>
           <tbody>
             {res.results
               .filter((r) => r.errors.length)

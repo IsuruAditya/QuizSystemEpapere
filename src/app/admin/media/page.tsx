@@ -15,15 +15,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
           {r.items.length === 0 ? (
             <EmptyState>No images uploaded yet.</EmptyState>
           ) : (
-            <Table caption="Media">
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>Media ID</th>
-                  <th>Type</th>
-                  <th>Alt text</th>
-                </tr>
-              </thead>
+            <Table caption="Media" columns={["Image", "Media ID", "Type", "Alt text"]}>
               <tbody>
                 {r.items.map((m) => (
                   <tr key={m.id}>

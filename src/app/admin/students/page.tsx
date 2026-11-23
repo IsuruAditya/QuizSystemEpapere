@@ -37,21 +37,12 @@ export default async function Students({ searchParams }: { searchParams: Promise
           {r.items.length === 0 ? (
             <EmptyState>No students found. Create one or upload a registration CSV.</EmptyState>
           ) : (
-            <Table caption="Students">
-              <thead>
-                <tr>
-                  <th>EP ID</th>
-                  <th>Name</th>
-                  <th>Grade</th>
-                  <th>WhatsApp</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
+            <Table caption="Students" columns={["EP ID", "Name", "Grade", "WhatsApp", "Status"]}>
               <tbody>
                 {r.items.map((s) => (
                   <tr key={s.userId}>
                     <td>
-                      <Link className="font-mono font-semibold underline" href={`/admin/students/${s.userId}`}>
+                      <Link className="font-mono font-semibold text-brand underline-offset-4 hover:underline" href={`/admin/students/${s.userId}`}>
                         {s.epId}
                       </Link>
                     </td>

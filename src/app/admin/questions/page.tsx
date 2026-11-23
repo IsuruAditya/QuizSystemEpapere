@@ -17,22 +17,12 @@ export default async function QuestionBank({ searchParams }: { searchParams: Pro
       {r.items.length === 0 ? (
         <EmptyState>No questions found.</EmptyState>
       ) : (
-        <Table caption="Questions">
-          <thead>
-            <tr>
-              <th>Question</th>
-              <th>External ID</th>
-              <th>Marks</th>
-              <th>Topic</th>
-              <th>Version</th>
-              <th>Used in published exams</th>
-            </tr>
-          </thead>
+        <Table caption="Questions" columns={["Question", "External ID", "Marks", "Topic", "Version", "Used in published exams"]}>
           <tbody>
             {r.items.map((q) => (
               <tr key={q.id}>
                 <td className="max-w-md">
-                  <Link className="line-clamp-2 underline" href={`/admin/questions/${q.id}`}>
+                  <Link className="line-clamp-2 font-semibold text-brand underline-offset-4 hover:underline" href={`/admin/questions/${q.id}`}>
                     {q.stem || "(image question)"}
                   </Link>
                 </td>

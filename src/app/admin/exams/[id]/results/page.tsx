@@ -86,20 +86,7 @@ export default async function ExamResults({ params, searchParams }: { params: Pr
       {attempts.items.length === 0 ? (
         <EmptyState>No attempts yet.</EmptyState>
       ) : (
-        <Table caption="Attempts">
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>Status</th>
-              <th>Started / deadline</th>
-              <th>Last saved</th>
-              <th>Answers (rev)</th>
-              <th>Finalised</th>
-              <th>Score</th>
-              <th>Time</th>
-              <th></th>
-            </tr>
-          </thead>
+        <Table caption="Attempts" columns={["Student", "Status", "Started / deadline", "Last saved", "Answers (rev)", "Finalised", "Score", "Time", ""]}>
           <tbody>
             {attempts.items.map((a) => (
               <tr key={a.id}>

@@ -22,16 +22,7 @@ export default async function StudentDetail({ params }: { params: Promise<{ id: 
           </Card>
           <section>
             <h2 className="mb-2 font-bold">Attempts</h2>
-            <Table caption="Attempts">
-              <thead>
-                <tr>
-                  <th>Exam</th>
-                  <th>Kind</th>
-                  <th>Status</th>
-                  <th>Score</th>
-                  <th>Started</th>
-                </tr>
-              </thead>
+            <Table caption="Attempts" columns={["Exam", "Kind", "Status", "Score", "Started"]}>
               <tbody>
                 {attempts.map((a) => (
                   <tr key={a.id}>

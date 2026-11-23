@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Alert, Badge, ButtonLink, Card, EmptyState, PageHeader, Table } from "@/components/ui";
+import { Alert, Badge, ButtonLink, EmptyState, PageHeader, Stat, Table } from "@/components/ui";
 import { adminOverview } from "@/server/catalog/admin-queries";
 import { formatColombo } from "@/lib/time";
 
@@ -19,19 +19,10 @@ export default async function AdminOverview() {
           ))}
         </Alert>
       )}
-      <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <Card>
-          <p className="text-sm text-muted">Published exams</p>
-          <p className="text-2xl font-bold">{o.exams.length}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-muted">Students currently in an attempt</p>
-          <p className="text-2xl font-bold">{o.exams.reduce((s, e) => s + e.inProgress, 0)}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-muted">Background jobs queued</p>
-          <p className="text-2xl font-bold">{o.queuedJobs}</p>
-        </Card>
+      <div className="mb-6 grid gap-3 sm:grid-cols-3">
+        <Stat label="Published exams" value={o.exams.length} />
+        <Stat label="Students in an attempt now" value={o.exams.reduce((s, e) => s + e.inProgress, 0)} />
+        <Stat label="Background jobs queued" value={o.queuedJobs} />
       </div>
       {o.recentImports.length > 0 && (
         <Alert kind="warn" title="Imports with errors waiting for fixes" className="mb-4">
@@ -49,22 +40,12 @@ export default async function AdminOverview() {
       {o.exams.length === 0 ? (
         <EmptyState>No published exams yet.</EmptyState>
       ) : (
-        <Table caption="Published exams">
-          <thead>
-            <tr>
-              <th>Exam</th>
-              <th>Grade</th>
-              <th>Status</th>
-              <th>Opens / closes (Colombo)</th>
-              <th>In progress</th>
-              <th>Submitted</th>
-            </tr>
-          </thead>
+        <Table caption="Published exams" columns={["Exam", "Grade", "Status", "Opens / closes (Colombo)", "In progress", "Submitted"]}>
           <tbody>
             {o.exams.map((e) => (
               <tr key={e.id}>
                 <td>
-                  <Link className="font-semibold underline" href={`/admin/exams/${e.id}/results`}>
+                  <Link className="font-semibold text-brand underline-offset-4 hover:underline" href={`/admin/exams/${e.id}/results`}>
                     {e.title}
                   </Link>{" "}
                   <span className="text-xs text-muted">{e.mode}</span>
