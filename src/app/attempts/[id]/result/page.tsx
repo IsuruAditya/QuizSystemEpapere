@@ -35,33 +35,37 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
         <h1 className="text-2xl font-bold">{tr("receiptTitle")}</h1>
         {r.voided && <Alert kind="warn" className="mt-3">{tr("voidedNotice", { reason: r.voidReason ?? "" })}</Alert>}
 
-        <Card className="mt-4">
-          <dl className="grid gap-3 sm:grid-cols-3">
-            <div>
-              <dt className="text-xs text-muted">{tr("receiptAt", { time: "" }).replace(/\s+$/, "")}</dt>
+        <section className="mt-4 overflow-hidden rounded-3xl border border-border bg-bg shadow-card" aria-label={tr("yourScore")}>
+          <div className="hero p-5 sm:p-7">
+            <p className="text-sm font-semibold text-white/85">{tr("yourScore")}</p>
+            <p className="mt-1 text-4xl font-bold tabular-nums sm:text-5xl">
+              {r.gradingState === "PENDING" ? "…" : r.score !== null ? tr("scoreOf", { score: r.score, max: r.maxScore ?? 0 }) : "—"}
+            </p>
+            {r.score !== null && r.percentBp !== null && <p className="mt-1 text-lg font-semibold text-white/90">{(r.percentBp / 100).toFixed(1)}%</p>}
+          </div>
+          <dl className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
+            <div className="rounded-2xl border border-border p-3">
+              <dt className="text-xs font-semibold text-muted">{tr("receivedLabel")}</dt>
               <dd className="font-semibold">{r.submittedAt ? formatColombo(r.submittedAt, lang) : "—"}</dd>
               {r.finalizeReason === "EXPIRED" && <dd className="text-xs text-muted">{tr("receiptExpired")}</dd>}
             </div>
-            <div>
-              <dt className="text-xs text-muted">{tr("timeTaken")}</dt>
+            <div className="rounded-2xl border border-border p-3">
+              <dt className="text-xs font-semibold text-muted">{tr("timeTaken")}</dt>
               <dd className="font-semibold tabular-nums">{r.elapsedMs !== null ? formatElapsed(r.elapsedMs) : "—"}</dd>
             </div>
-            <div>
-              <dt className="text-xs text-muted">{tr("yourScore")}</dt>
-              <dd className="text-2xl font-bold">
-                {r.gradingState === "PENDING" ? "…" : r.score !== null ? tr("scoreOf", { score: r.score, max: r.maxScore ?? 0 }) : "—"}
-              </dd>
-              {r.score !== null && r.percentBp !== null && <dd className="text-sm text-muted">{(r.percentBp / 100).toFixed(1)}%</dd>}
-            </div>
           </dl>
-          {r.gradingState === "PENDING" && (
-            <>
-              <Alert kind="info" live className="mt-3">{tr("scorePending")}</Alert>
-              <ResultAutoRefresh />
-            </>
+          {(r.gradingState === "PENDING" || (r.gradingState === "GRADED" && !r.release.score)) && (
+            <div className="px-5 pb-5 sm:px-6">
+              {r.gradingState === "PENDING" && (
+                <>
+                  <Alert kind="info" live>{tr("scorePending")}</Alert>
+                  <ResultAutoRefresh />
+                </>
+              )}
+              {r.gradingState === "GRADED" && !r.release.score && <Alert kind="info">{tr("scoreHidden", { time: rel })}</Alert>}
+            </div>
           )}
-          {r.gradingState === "GRADED" && !r.release.score && <Alert kind="info" className="mt-3">{tr("scoreHidden", { time: rel })}</Alert>}
-        </Card>
+        </section>
 
         {r.gradingState === "GRADED" && !r.release.correctness && (
           <Alert kind="info" className="mt-4">{r.release.releaseAt ? tr("reviewHidden", { time: rel }) : tr("reviewNever")}</Alert>

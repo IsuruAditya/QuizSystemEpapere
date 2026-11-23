@@ -45,15 +45,7 @@ export default async function LeaderboardPage({ params, searchParams }: { params
         {lb.rows.length === 0 ? (
           <EmptyState>{tr("noRankings")}</EmptyState>
         ) : (
-          <Table caption={tr("leaderboard")}>
-            <thead>
-              <tr>
-                <th scope="col">{tr("rank")}</th>
-                <th scope="col">{tr("name")}</th>
-                <th scope="col">{tr("marks")}</th>
-                <th scope="col">{tr("time")}</th>
-              </tr>
-            </thead>
+          <Table caption={tr("leaderboard")} columns={[tr("rank"), tr("name"), tr("marks"), tr("time")]} stack={false}>
             <tbody>
               {lb.rows.map((r) => (
                 <tr key={r.attemptId} className={r.isMe ? "bg-brand-soft font-semibold" : undefined} aria-current={r.isMe ? "true" : undefined}>

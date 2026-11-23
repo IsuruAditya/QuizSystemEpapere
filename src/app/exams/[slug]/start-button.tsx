@@ -10,11 +10,11 @@ export function StartButton({ slug, label, busyLabel, messages }: { slug: string
   const router = useRouter();
   const m = useMutation(attemptApi.start, { describe: (a) => messages[a.code as ErrorCode] ?? messages.default ?? null });
   return (
-    <div className="space-y-2">
+    <div className="mx-auto max-w-6xl space-y-2">
       {m.error && <Alert kind="danger">{m.error}</Alert>}
       <Button
         size="lg"
-        className="w-full sm:w-auto"
+        className="w-full"
         disabled={m.busy}
         onClick={async () => {
           const r = await m.run(slug);
