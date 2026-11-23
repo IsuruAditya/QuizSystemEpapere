@@ -2,89 +2,213 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Design tokens. Brand: blue-violet #3E3A98 on white. Contrast checked for WCAG AA in both themes
-   (see docs/accessibility-report.md). */
+/*
+ * Design tokens: teal brand (owner decision, replaces the brief's blue-violet; see requirements C14).
+ * Contrast (WCAG 2.2 AA) checked by axe in E2E for both themes:
+ *  - text on bg/canvas >= 4.5:1 (fg, muted, brand)
+ *  - form-control borders (--border-strong) >= 3:1 against their background (1.4.11)
+ *  - --border is decorative only (cards, dividers)
+ */
 :root {
+  --canvas: #f3f7f6;
   --bg: #ffffff;
-  --surface: #f6f6fb;
-  --surface-2: #ececf6;
-  --fg: #16152e;
-  --muted: #4d4b6b;
-  --border: #c9c7df;
-  --brand: #3e3a98;
+  --surface: #eef5f4;
+  --surface-2: #dfecea;
+  --fg: #0b1f1d;
+  --muted: #47605d;
+  --border: #d4e3e0;
+  --border-strong: #6b8b86;
+  --brand: #0f766e;
+  --brand-strong: #115e59;
   --brand-fg: #ffffff;
-  --brand-soft: #e8e7f7;
-  --focus: #3e3a98;
-  --ok: #146c2e;
-  --ok-soft: #e3f4e8;
+  --brand-soft: #e3f3f0;
+  --brand-tint: #c4e9e3;
+  --hero-from: #0f766e;
+  --hero-to: #0e5f74;
+  --focus: #0f766e;
+  --ok: #166534;
+  --ok-soft: #e6f5ea;
   --warn: #8a5300;
-  --warn-soft: #fff1d6;
-  --danger: #a4161a;
-  --danger-soft: #fde7e7;
+  --warn-soft: #fff3db;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --shadow: 0 1px 2px rgb(11 31 29 / 0.06), 0 2px 8px rgb(11 31 29 / 0.05);
   color-scheme: light;
 }
 [data-theme="dark"] {
-  --bg: #121120;
-  --surface: #1b1a2e;
-  --surface-2: #26243f;
-  --fg: #eeedf8;
-  --muted: #b9b7d4;
-  --border: #45436a;
-  --brand: #a9a5f2;
-  --brand-fg: #121120;
-  --brand-soft: #2c2a52;
-  --focus: #c8c5ff;
-  --ok: #7fdc98;
-  --ok-soft: #173322;
-  --warn: #ffcb6b;
-  --warn-soft: #3a2b0e;
-  --danger: #ff9b9b;
-  --danger-soft: #3e1719;
+  --canvas: #091312;
+  --bg: #0f1c1b;
+  --surface: #142624;
+  --surface-2: #1b322f;
+  --fg: #e3f1ef;
+  --muted: #a3c0bb;
+  --border: #25403c;
+  --border-strong: #628a84;
+  --brand: #2dd4bf;
+  --brand-strong: #5eead4;
+  --brand-fg: #04201d;
+  --brand-soft: #123733;
+  --brand-tint: #17504a;
+  --hero-from: #0f4f4a;
+  --hero-to: #0c3d4c;
+  --focus: #5eead4;
+  --ok: #86efac;
+  --ok-soft: #12301f;
+  --warn: #fcd34d;
+  --warn-soft: #382a0b;
+  --danger: #fca5a5;
+  --danger-soft: #3b1614;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 10px rgb(0 0 0 / 0.25);
   color-scheme: dark;
 }
 
 @theme inline {
+  --color-canvas: var(--canvas);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
   --color-brand-fg: var(--brand-fg);
   --color-brand-soft: var(--brand-soft);
+  --color-brand-tint: var(--brand-tint);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --font-sans: "Noto Sans Sinhala", "Iskoola Pota", "Nirmala UI", "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --shadow-card: var(--shadow);
+  /* Fonts are chosen per character. Named Latin UI fonts come first and contain no Sinhala, so Sinhala
+     falls through to Abhaya Libre (reading text) / Gemunu Libre (headings), loaded in layout.tsx, and
+     their Latin files are never downloaded. Generic families (system-ui) are last because on some
+     platforms they cascade to a built-in Sinhala font. */
+  --font-sans: "Segoe UI", Roboto, "Helvetica Neue", Arial, var(--font-sinhala-text), "Noto Sans Sinhala", "Nirmala UI", "Iskoola Pota", system-ui, sans-serif;
+  --font-display: "Segoe UI", Roboto, "Helvetica Neue", Arial, var(--font-sinhala-display), var(--font-sinhala-text), "Noto Sans Sinhala", "Nirmala UI", system-ui, sans-serif;
 }
 
-html {
-  background: var(--bg);
-  color: var(--fg);
-  -webkit-text-size-adjust: 100%;
+/* Element defaults live in the base layer so Tailwind utilities (rounded-*, tracking-*, h-*) override them. */
+@layer base {
+  html {
+    background: var(--canvas);
+    color: var(--fg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: var(--font-sans);
+    /* Sinhala vowel signs extend above/below the line: generous line height prevents clipping. */
+    line-height: 1.65;
+    min-height: 100dvh;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--brand-tint);
+  }
 }
-body {
-  font-family: var(--font-sans);
-  /* Sinhala vowel signs extend above/below the line: generous line height prevents clipping. */
-  line-height: 1.65;
-  min-height: 100dvh;
+
+/* Branded gradient band (hero areas). Text on it uses --brand-fg-on-hero (white), >= 4.5:1. */
+.hero {
+  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  color: #ffffff;
 }
-:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
-  border-radius: 4px;
+
+/*
+ * Responsive data tables: below 640 px each row becomes a card; each cell shows its column label
+ * (generated per table by <Table columns=...>), so admin lists stay readable on phones.
+ */
+@media (max-width: 639.98px) {
+  .table-stack table,
+  .table-stack tbody,
+  .table-stack tr,
+  .table-stack td {
+    display: block;
+    width: 100%;
+  }
+  .table-stack table {
+    min-width: 0 !important;
+  }
+  .table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .table-stack tr {
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .table-stack tr:first-child {
+    border-top: 0;
+  }
+  .table-stack td {
+    border: 0 !important;
+    padding: 0.25rem 0 !important;
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 38%) 1fr;
+    justify-items: start; /* badges keep their natural width */
+    gap: 0.75rem;
+  }
+  /* `content` (the column label) is generated per table by <Table columns=...>. */
+  .table-stack td::before {
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding-top: 0.15rem;
+  }
+  .table-stack td:empty {
+    display: none;
+  }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
-.katex { font-size: 1.05em; }
-.katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.25rem 0; }
-img { max-width: 100%; height: auto; }
+.katex {
+  font-size: 1.05em;
+}
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+/* ClientForm's inner fieldset: browser defaults removed in the base layer, so a form's own
+   layout utilities (mt-*, space-y, grid, border-b, py-*) always win. Unlayered CSS would beat
+   Tailwind's layered utilities regardless of specificity. */
+@layer base {
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  fieldset.form-fields {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+}
+dialog::backdrop {
+  background: rgb(4 20 18 / 0.55);
+}
