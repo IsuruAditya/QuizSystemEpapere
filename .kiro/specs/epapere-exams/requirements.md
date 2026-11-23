@@ -21,6 +21,7 @@ Labels: **MVP** = implement now. **POST** = Post-MVP, documented in `docs/roadma
 | C11 | §15 lists "attempt assignments"; randomisation is POST. | Assigned order = immutable exam-version slot order and fixed option positions; no per-attempt order table until randomisation is built. Reproducibility is guaranteed by immutability. ADR-002. |
 | C12 | Role changes must invalidate sessions, but MVP has no teacher role. | Roles: ADMIN, STUDENT. Additional admins are created only by the privileged CLI; no web role-change endpoint exists (tested negatively). |
 | C13 | Raw CSV must stay private; storage of source files. | Raw bytes are not persisted; the import job stores SHA-256, size, filename and parsed rows in the private DB. Nothing goes to `public/`. |
+| C14 | Brief specifies brand #3E3A98 (blue-violet); owner later asked for a professional teal theme. | Owner request wins: teal tokens (light #0F766E/#115E59, dark #2DD4BF) replace #3E3A98; contrast re-verified by axe in both themes. |
 
 ## 1. Scope (MVP)
 
@@ -73,7 +74,7 @@ Labels: **MVP** = implement now. **POST** = Post-MVP, documented in `docs/roadma
 - **R4.2 MVP** Routes: `/login`, `/student`, `/exams/[slug]`, `/attempts/[id]`, `/attempts/[id]/result`, `/exams/[slug]/leaderboard`, `/admin/...`. Safe same-origin return URL.
 - **R4.3 MVP** Landing shows duration, marks, question count, attempt policy, timing/late-start warning, review policy, teacher photo; no question content before start.
 - **R4.4 MVP** Attempt UI: large radio options, navigation grid, answered/unanswered counts, flag for review, progress, countdown (hidden when untimed), Saved/Saving/Pending/Offline/Retry status, submission review with unanswered list.
-- **R4.5 MVP** Sinhala default, English toggle; dictionaries; `lang` attributes; light/dark themes; brand #3E3A98/#FFFFFF.
+- **R4.5 MVP** Sinhala default, English toggle; dictionaries; `lang` attributes; light/dark themes; teal brand tokens (#0F766E/#FFFFFF light, #2DD4BF dark; C14).
 - **R4.6 MVP** States: loading, empty, validation error, permission denied, offline/reconnecting, deadline reached, completed; no dead buttons.
 - **R4.7 MVP** WCAG 2.2 AA target: keyboard flow, visible focus, labelled errors, contrast in both themes, targets ≥ 44px for answer options, reduced motion, accessible status announcements (no per-second announcements).
 

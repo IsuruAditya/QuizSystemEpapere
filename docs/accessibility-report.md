@@ -22,7 +22,8 @@ Target: **WCAG 2.2 Level AA** for student and administrator journeys. This is a 
 - Math: KaTeX output includes MathML for assistive technology. Images use admin-entered alt text, which publication requires for image-only content.
 - Reduced motion: transitions are disabled under `prefers-reduced-motion`.
 - Sinhala: line height 1.65 and system Sinhala fonts (Noto Sans Sinhala / Iskoola Pota / Nirmala UI) to avoid clipped vowel signs; text wraps.
-- Colour contrast: brand #3E3A98 on white and the dark-theme tokens are checked by axe on the screens above.
+- Typography: Sinhala text uses Abhaya Libre (body, questions, options) and Gemunu Libre (headings), self-hosted via next/font with the Sinhala subset preloaded; Latin text uses the platform UI font. Body line height 1.65 avoids clipping Sinhala vowel signs.
+- Colour contrast: teal brand tokens (light #0F766E / #115E59 on white, dark #2DD4BF on #091312), hero gradient text and form-control borders (`--border-strong`, >= 3:1) are checked by axe on the screens above in both themes. The language toggle's accessible name contains its visible text (WCAG 2.5.3).
 
 ## Not yet verified (must be done before claiming AA)
 

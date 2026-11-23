@@ -15,7 +15,7 @@ Last full run: **21 Nov 2026**, Windows 11 laptop, Node 24.14.0, embedded Postgr
 | `npm audit --omit=dev --audit-level=high` | PASS (0 vulnerabilities after overrides; see security.md) |
 | `gitleaks git --config .gitleaks.toml .` (8.24.3, full history) | PASS (2 commits, no leaks; the only default-rule finding is the allowlisted E2E placeholder) |
 | `npm run build` | PASS |
-| `npm run test:e2e` (Playwright, desktop Chromium + Pixel 5) | **PASS: 7/7** (full admin→student flow; axe A/AA light and dark on four student screens, two viewports; keyboard; offline recovery) |
+| `npm run test:e2e` (Playwright, desktop Chromium + Pixel 5) | **PASS: 7/7** (full admin→student flow; axe A/AA light and dark on four student screens, two viewports; keyboard; offline recovery). Re-run after the teal UI redesign |
 | `npm run admin:bootstrap` | PASS (creates the first admin; a second run is refused) |
 | `npm run db:seed` (twice) | PASS (idempotent) |
 | k6 smoke (5 scenarios, 20 users, local) + `load-verify.ts` | PASS (see load-test-report.md). **Not a capacity result** |
@@ -36,6 +36,8 @@ Last full run: **21 Nov 2026**, Windows 11 laptop, Node 24.14.0, embedded Postgr
 | **Race in concurrent ranked starts**: a request losing the insert race counted the winner's new attempt as "already used" and returned NO_ATTEMPTS_REMAINING instead of resuming (double-click / two tabs) | first GitHub Actions run (`attempts.test.ts`); not reproducible on the dev laptop in 30 local rounds | count only voided official attempts; the test now runs 10 rounds × 20 concurrent starts and asserts no request fails |
 | Same race in **practice exams with a max-attempts limit** (the winner's new in-progress attempt was counted towards the limit) | code review after the ranked fix | count only finalised practice attempts; new test: maxAttempts=1, 10 rounds × 20 concurrent starts, none fails |
 | gitleaks-action cannot scan a repository's first push (`<root>^` does not exist) | first GitHub Actions run | pinned, checksum-verified gitleaks CLI scanning full history; `.gitleaks.toml` allowlists only the two documented E2E placeholder literals (verified: realistic secrets are still detected) |
+| Teal redesign: phone language toggle showed "EN" while its accessible name was "Language: English" (WCAG 2.5.3 label-in-name) | axe in E2E (`label-content-name-mismatch`, both themes) | visible full language name; accessible name built from visible text plus a screen-reader-only prefix |
+| Unlayered global CSS (fieldset reset, `:focus-visible` radius, `img` height) overrode Tailwind's layered utilities, dropping form margins and squaring focused rounded controls | screenshot review of the redesign | element defaults moved into `@layer base` |
 
 ## NOT RUN (and why)
 
