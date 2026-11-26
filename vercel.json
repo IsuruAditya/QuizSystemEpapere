@@ -1,6 +1,5 @@
 {
   "regions": ["sin1"],
-  "crons": [{ "path": "/api/internal/jobs/run", "schedule": "* * * * *" }],
   "functions": {
     "src/app/api/internal/jobs/run/route.ts": { "maxDuration": 60 },
     "src/app/api/v1/admin/students/bulk/route.ts": { "maxDuration": 60 }
