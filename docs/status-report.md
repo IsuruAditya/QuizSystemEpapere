@@ -27,7 +27,7 @@
 
 ## Remaining blockers before inviting 5,000 students
 
-1. **Provision staging and production** (Vercel Pro for per-minute cron, Neon compute, private Blob stores). This needs your authorisation and paid accounts.
+1. **Provision staging and production** (staging works on Vercel Hobby with an external job scheduler, deployment.md section 7; production needs Vercel Pro for commercial use, Neon compute and private Blob stores). This needs your authorisation and paid accounts.
 2. **Configure secrets** in Vercel per environment. Never share them in chat.
 3. **Run CI on GitHub**, pin the action SHAs, and enable required checks.
 4. **Staging capacity tests** at 50 % / 100 % / 150 %, with an external load generator, including the 60-minute soak and expiry reconciliation. Run `load-verify.ts` after each.

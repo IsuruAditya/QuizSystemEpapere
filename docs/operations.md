@@ -11,11 +11,11 @@ Logs are structured JSON on stdout/stderr (Vercel log drains can forward them). 
 | Save failures | `/api/v1/attempts/*/answers` 5xx rate (Vercel observability) | > 0.5 % over 5 min during an exam | Check Neon CPU/connections; check the `transient database failure` logs. Students keep answers locally and retry automatically. |
 | Submit failures | `/submit` 5xx rate | any sustained 5xx | Same as above. Submit is idempotent, so students may press again. |
 | Save p95 latency | Vercel function duration | > 1 s | Neon compute or pool saturation; see the load-test report for the tested envelope |
-| Unreconciled expiries | Admin Overview banner ("expired attempts not yet finalised for over 5 minutes") | non-zero | Cron not running or failing; invoke `/api/internal/jobs/run` manually with the secret |
+| Unreconciled expiries | Admin Overview banner ("expired attempts not yet finalised for over 5 minutes") | non-zero | Job scheduler not running or failing (check its history for non-200 responses); invoke `POST /api/internal/jobs/run` manually with the secret |
 | Failed jobs | Admin Overview "Needs attention" (`job.status = FAILED`) | any | Read `last_error`; fix the cause; re-queue by re-running the regrade (dedupe key re-queues) |
 | DB saturation | Neon console: CPU, connections, waiting queries | CPU > 80 % sustained | Scale compute (pre-approved size for exam days) |
 
-`logger.info("job runner", …)` is logged every minute with counts (expired finalised, jobs run/failed), so a missing minute means the cron stopped. OpenTelemetry export is Post-MVP. Log-based checks are the current mechanism.
+`logger.info("job runner", …)` is logged every minute with counts (expired finalised, jobs run/failed), so a missing minute means the scheduler stopped. OpenTelemetry export is Post-MVP. Log-based checks are the current mechanism.
 
 ## Incident response (during an exam)
 
@@ -57,7 +57,7 @@ Logs are structured JSON on stdout/stderr (Vercel log drains can forward them). 
 - [ ] Exam published, preview checked, share link tested by a staff student account
 - [ ] `closesAt`, duration and review release time correct in Asia/Colombo
 - [ ] Neon compute at the approved exam size; scale-to-zero off; pre-exam branch created
-- [ ] Cron runs visible in the last 10 minutes; Admin Overview shows no failed jobs
+- [ ] Scheduler runs visible in the last 10 minutes (one 200 per minute); Admin Overview shows no failed jobs
 - [ ] Support contact and a reset-password operator available during the exam
 
 ## Launch checklist (before inviting students)

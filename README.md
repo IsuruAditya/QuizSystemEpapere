@@ -14,7 +14,7 @@ Status: **MVP code complete and locally verified; not yet staging- or capacity-v
 | Data | PostgreSQL (Neon in production; real embedded PostgreSQL 18.7 locally), Prisma 7.10.1 + `@prisma/adapter-pg` 7.10.1, `pg` 8.23.1 |
 | Auth | Better Auth 1.7.26 (username plugin, database sessions, scrypt N=16384 r=16 p=1) via server API only |
 | Validation | Zod 4.6.7 |
-| Files | Vercel Blob 2.9.0 private store (production), local disk (dev/test) |
+| Files | Cloudinary 2.11.0 SDK, authenticated assets (ADR-009), or Vercel Blob 2.9.0 private store; local disk (dev/test with a local database) |
 | Tests | Vitest 5.1.1, Playwright 1.65.1 + axe-core 4.14.0, k6 scripts |
 
 ## Local setup
@@ -65,7 +65,7 @@ docs/               architecture, ADRs, OpenAPI, guides, reports
 ## Documentation
 
 - [Architecture, data model, timing/concurrency and ranking policy](docs/architecture.md) · [ADRs](docs/adr.md) · [OpenAPI 3.1](docs/openapi.json)
-- [Deployment (Vercel + Neon + Blob)](docs/deployment.md) · [Operations, backup/restore, exam-day, launch checklist](docs/operations.md)
+- [Deployment (Vercel + Neon + Cloudinary or Blob)](docs/deployment.md) · [Operations, backup/restore, exam-day, launch checklist](docs/operations.md)
 - [Admin guide](docs/admin-guide.md) · [Security and threat model](docs/security.md) · [Accessibility report](docs/accessibility-report.md)
 - [Engineering standards mapping](docs/engineering-standards.md) · [Requirement traceability](docs/traceability.md)
 - [Test report](docs/test-report.md) · [Load-test report](docs/load-test-report.md) · [Status report](docs/status-report.md)

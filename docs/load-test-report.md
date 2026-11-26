@@ -45,7 +45,7 @@ Not yet smoke-run: `exam_session` (60 min) and `expiry` with reconciliation.
 
 ## Required before claiming capacity (pending, needs authorisation and resources)
 
-1. A staging environment that mirrors production: Vercel plan and region `sin1`, Neon compute size, pooled URL, `DATABASE_POOL_MAX`, private Blob, cron enabled.
+1. A staging environment that mirrors production: Vercel plan and region `sin1`, Neon compute size, pooled URL, `DATABASE_POOL_MAX`, private Blob, job scheduler running every minute.
 2. A load generator **outside** the app host. 5,000 VUs need a k6 machine with enough CPU and network, or Grafana Cloud k6. Check `dropped_iterations` = 0 to confirm it really generated the load.
 3. Run order on staging: smoke → normal (50 %) → spike (100 % starts and submits) → soak (60-min `exam_session` at 100 %) → stress (150 %). Run `load-verify.ts` after each run, and run the expiry scenario followed by the job runner, then confirm the leaderboard reaches FINAL.
 4. Record: p50/p95/p99 per endpoint, error and timeout counts, retries, Neon CPU and connections, pooler wait, function concurrency and cold starts, and estimated cost per exam.

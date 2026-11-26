@@ -9,7 +9,7 @@ Last full run: **21 Nov 2026**, Windows 11 laptop, Node 24.14.0, embedded Postgr
 | `npm run check:encoding` | PASS (all files valid UTF-8, no mojibake) |
 | `npm run lint` | PASS (0 problems, `--max-warnings=0`) |
 | `npm run typecheck` | PASS |
-| `npm test` (unit) | **PASS: 44/44** in 5 files (grading, CSV, timing/ranking/release, sync queue, OpenAPI contract) |
+| `npm test` (unit) | **PASS: 55/55** in 6 files (grading, CSV, timing/ranking/release, sync queue, OpenAPI contract, media storage configuration) |
 | `npm run test:integration` (real PostgreSQL `epapere_test`) | **PASS: 60/60** in 6 files (attempts, ranking/import/regrade/export, security over HTTP handlers, query plans, session settings, timezone) |
 | `npx prisma migrate deploy` on an empty database | PASS (integration global setup resets and migrates every run; dev and E2E databases also migrated) |
 | `npm audit --omit=dev --audit-level=high` | PASS (0 vulnerabilities after overrides; see security.md) |
@@ -50,7 +50,8 @@ Last full run: **21 Nov 2026**, Windows 11 laptop, Node 24.14.0, embedded Postgr
 | Manual screen-reader passes (NVDA, TalkBack, VoiceOver) | manual | accessibility-report.md checklist |
 | axe on admin, result and leaderboard pages | not yet scripted | extend `mobile-a11y.spec.ts` |
 | Backup restore drill | needs Neon | operations.md |
-| Vercel/Neon/Blob deployment checks (TLS, pooler behaviour, cron, Blob private reads) | no credentials | deployment.md |
+| Vercel/Neon/Blob deployment checks (TLS, pooler behaviour, job scheduler, Blob private reads) | no credentials | deployment.md |
+| Cloudinary adapter against a real account (upload as `authenticated`, signed server-side read, unsigned URL refused) | no credentials; unit tests cover only configuration validation and key mapping | deployment.md section 7, step 7 (upload an image under Media and see its thumbnail) |
 | Job lease crash/takeover under real process kill | lease logic implemented; only retry/recovery paths tested | add a test that expires a lease mid-run |
 
 ## How to reproduce
